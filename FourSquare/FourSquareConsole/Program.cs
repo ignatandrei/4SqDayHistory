@@ -12,7 +12,7 @@ namespace FourSquareConsole
         static void Main(string[] args)
         {
 
-            var c = new conect4Sq();
+            var c = new conect4Sq("a","b");
             c.Authenticate();
             var data = c.VenuesToday();
             foreach (var item in data)
