@@ -10,7 +10,8 @@ namespace FourSquareWeb.Controllers
 {
     public class ValuesController : ApiController
     {
-        public string GetData(string id)
+        [HttpGet]
+        public string ClientToken(string id)
         {
             return System.Web.HttpContext.Current.Application[id].ToString();
         }

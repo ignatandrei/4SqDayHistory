@@ -52,6 +52,10 @@
       <Project>{48f7e5b7-2384-4405-aa81-77cdd6a07836}</Project>
       <Name>FourSquareData</Name>
     </ProjectReference>
+    <ProjectReference Include="..\SharpSquare-master\SharpSquare.csproj">
+      <Project>{f6163f95-da23-49c6-b58b-cef0cf0b2c83}</Project>
+      <Name>SharpSquare</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

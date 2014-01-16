@@ -25,12 +25,12 @@ namespace FourSquareData
 
     public void Authenticate()
     {
-        string urlAuth = this.sharpSquare.GetAuthenticateUrl(this.url + "redirect/" + this.thisRequest);
+        string urlAuth = this.sharpSquare.GetAuthenticateUrl(this.url + "home/redirect4Sq/" + this.thisRequest);
         Process p = new Process();
         p.StartInfo.FileName = urlAuth;
         p.Start();
         p.WaitForExit();
-        Task<string> q = new WebClient().DownloadStringTaskAsync(this.url + "Values/" + this.thisRequest);
+        Task<string> q = new WebClient().DownloadStringTaskAsync(this.url + "Values/ClientToken/" + this.thisRequest);
         string token = this.sharpSquare.GetAccessToken("url", q.Result);
     }
 
@@ -40,7 +40,12 @@ namespace FourSquareData
         TimeSpan ts = date.ToUniversalTime() - epoch;
         return Convert.ToInt64(ts.TotalSeconds);
     }
+    public List<VenueHistory> VenuesToday()
+    {
+        var now=DateTime.Now.Date;
 
+        return VenuesBetween(now, DateTime.Now.Date.AddDays(1));
+    }
     public List<VenueHistory> VenuesBetween(DateTime? afterTimestamp, DateTime? beforeTimestamp)
     {
         Dictionary<string, string> d = new Dictionary<string, string>();

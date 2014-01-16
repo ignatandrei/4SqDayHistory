@@ -26,5 +26,10 @@ namespace FourSquareWeb.Controllers
 
             return View();
         }
+        public ActionResult redirect4Sq(string id, string code)
+        {
+            System.Web.HttpContext.Current.Application[id] = code;
+            return Content("Ok" + id + "->"+code);
+        }
     }
 }
