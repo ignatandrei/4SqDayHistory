@@ -30,7 +30,7 @@ namespace FourSquareData
         p.StartInfo.FileName = urlAuth;
         p.Start();
         p.WaitForExit();
-        Task<string> q = new WebClient().DownloadStringTaskAsync(this.url + "Values/ClientToken/" + this.thisRequest);
+        Task<string> q = new WebClient().DownloadStringTaskAsync(this.url + "api/Values/ClientToken/" + this.thisRequest);
         string token = this.sharpSquare.GetAccessToken("url", q.Result);
     }
 
