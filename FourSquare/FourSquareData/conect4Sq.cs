@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 using FourSquare.SharpSquare.Core;
 using FourSquare.SharpSquare.Entities;
 using Microsoft.Win32;
@@ -37,6 +39,64 @@ namespace FourSquareData
         Task<string> q = new WebClient().DownloadStringTaskAsync(newUrl);
         var code = q.Result.Replace("\"","");
         string token = this.sharpSquare.GetAccessToken(this.url + "home/redirect4sq/", code);
+    }
+    bool authenticated = false;
+    string urlAuth = "";
+       public void Authenticate2()
+    {
+        urlAuth = this.sharpSquare.GetAuthenticateUrl(this.url + "home/redirect4sq/" + this.thisRequest);
+        var th = new Thread(() =>
+        {
+            
+            var clicker = new WebBrowser { ScriptErrorsSuppressed = true };
+           
+            
+            clicker.Visible = true;
+            clicker.DocumentCompleted += clicker_DocumentCompleted;
+            clicker.Navigate(urlAuth);
+            Application.Run();
+            //while (clicker.ReadyState != WebBrowserReadyState.Complete)
+            //{
+            //    Application.DoEvents();
+            //}
+        });
+        th.SetApartmentState(ApartmentState.STA);
+        th.Start();
+        int nrSecondsToWait = 5 * 60;
+        while (!authenticated && nrSecondsToWait>0)
+        {
+            Thread.Sleep(5000);
+            nrSecondsToWait-=5;
+            Console.WriteLine("waiting" + nrSecondsToWait);
+            
+        }
+        if (!authenticated)
+        {
+            throw new ArgumentException("not connected to foursquare");
+        }
+        var newUrl = this.url + "api/Values/ClientToken/" + this.thisRequest;
+        Task<string> q = new WebClient().DownloadStringTaskAsync(newUrl);
+        var code = q.Result.Replace("\"", "");
+        string token = this.sharpSquare.GetAccessToken(this.url + "home/redirect4sq/", code);
+    }
+
+    void clicker_DocumentCompleted(object sender, WebBrowserDocumentCompletedEventArgs e)
+    {
+        if (authenticated)
+            return;
+        if(!e.Url.OriginalString.StartsWith(this.url))
+        {
+
+            var f = new WebCredentials(urlAuth, this.url);
+            f.ShowDialog();
+            authenticated = (f.DialogResult == DialogResult.OK);
+            
+        }
+        else
+        {
+            authenticated = true;
+        }  
+        Application.ExitThread(); 
     }
     private string getDefaultBrowser()
     {
