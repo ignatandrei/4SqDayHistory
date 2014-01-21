@@ -1,0 +1,65 @@
+﻿@model IEnumerable<FourSquare.SharpSquare.Entities.Checkin>
+
+@{
+    ViewBag.Title = "ShowCheckins";
+}
+
+<h2>Show Checkins</h2>
+
+<p>
+    
+</p>
+<table class="table">
+    <tr>
+        <th>
+            @Html.DisplayNameFor(model => model.createdAt)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.type)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.isMayor)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.timeZone)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.verified)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.distance)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.shout)
+        </th>
+        
+    </tr>
+
+@foreach (var item in Model) {
+    <tr>
+        <td>
+            @Html.DisplayFor(modelItem => item.createdAt)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.type)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.isMayor)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.timeZone)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.verified)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.distance)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.shout)
+        </td>
+        
+    </tr>
+}
+
+</table>

@@ -18,33 +18,38 @@ namespace FourSquareData
 {
     // Fields
     private SharpSquare sharpSquare;
-    private string thisRequest = Guid.NewGuid().ToString("N");
-    private string url = "http://fsq.apphb.com/";
-
+    public string thisRequest { get; private set; }
+    public static string urlSOA = "http://fsq.apphb.com/";
+    public string urlAuth { get; private set; }
     // Methods
     public conect4Sq(string clientId, string clientSecret)
     {
+        this.thisRequest = Guid.NewGuid().ToString("N");
         this.sharpSquare = new SharpSquare(clientId, clientSecret);
+        this.urlAuth = this.sharpSquare.GetAuthenticateUrl(urlSOA + "home/redirect4sq/" + this.thisRequest);
     }
+    public void AuthenticateToken()
+    {
+        var newUrl = urlSOA + "api/Values/ClientToken/" + this.thisRequest;
+        var code = new WebClient().DownloadString(newUrl).Replace("\"", "");        
+        string token = this.sharpSquare.GetAccessToken(urlSOA + "home/redirect4sq/", code);
 
+    }
     public void Authenticate()
     {
-        string urlAuth = this.sharpSquare.GetAuthenticateUrl(this.url + "home/redirect4sq/" + this.thisRequest);
+        string urlAuth = this.sharpSquare.GetAuthenticateUrl(urlSOA + "home/redirect4sq/" + this.thisRequest);
         Process p = new Process();
         p.StartInfo.FileName = getDefaultBrowser();
         p.StartInfo.Arguments = urlAuth;
         p.Start();
         Thread.Sleep(5000);
-        var newUrl = this.url + "api/Values/ClientToken/" + this.thisRequest;
-        Task<string> q = new WebClient().DownloadStringTaskAsync(newUrl);
-        var code = q.Result.Replace("\"","");
-        string token = this.sharpSquare.GetAccessToken(this.url + "home/redirect4sq/", code);
+        AuthenticateToken();
     }
     bool authenticated = false;
-    string urlAuth = "";
+    
        public void Authenticate2()
     {
-        urlAuth = this.sharpSquare.GetAuthenticateUrl(this.url + "home/redirect4sq/" + this.thisRequest);
+        
         var th = new Thread(() =>
         {
             
@@ -74,20 +79,18 @@ namespace FourSquareData
         {
             throw new ArgumentException("not connected to foursquare");
         }
-        var newUrl = this.url + "api/Values/ClientToken/" + this.thisRequest;
-        Task<string> q = new WebClient().DownloadStringTaskAsync(newUrl);
-        var code = q.Result.Replace("\"", "");
-        string token = this.sharpSquare.GetAccessToken(this.url + "home/redirect4sq/", code);
+        AuthenticateToken();
+        
     }
 
     void clicker_DocumentCompleted(object sender, WebBrowserDocumentCompletedEventArgs e)
     {
         if (authenticated)
             return;
-        if(!e.Url.OriginalString.StartsWith(this.url))
+        if(!e.Url.OriginalString.StartsWith(urlSOA))
         {
 
-            var f = new WebCredentials(urlAuth, this.url);
+            var f = new WebCredentials(urlAuth, urlSOA);
             f.ShowDialog();
             authenticated = (f.DialogResult == DialogResult.OK);
             
