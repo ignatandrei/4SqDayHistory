@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -17,8 +18,8 @@ namespace FourSquareData
 {
     public class conect4Sq
     {
-        public const string FakeClientId = "clientid";
-        public static string FakeClientSecret = "clientsecret";
+        const string FakeClientId = "FakeClientid";
+        static string FakeClientSecret = "FakeClientSecret";
 
 
         // Fields
@@ -27,6 +28,12 @@ namespace FourSquareData
         public static string urlSOA = "http://fsq.apphb.com/";
         public string urlAuth { get; private set; }
         // Methods
+        public conect4Sq()
+            : this(ConfigurationManager.AppSettings["clientId"], ConfigurationManager.AppSettings["clientSecret"])
+        {
+
+        }
+
         public conect4Sq(string clientId, string clientSecret,
             [CallerMemberName] string memberName = "",
             [CallerFilePath] string sourceFilePath = "",
