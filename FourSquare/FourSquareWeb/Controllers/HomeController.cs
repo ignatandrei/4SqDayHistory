@@ -18,7 +18,7 @@ namespace FourSquareWeb.Controllers
                 var ses = this.HttpContext.Session;
                 if (ses[name] == null)
                 {
-                    ses[name] = new conect4Sq("clientid", "clientsecret");
+                    ses[name] = new conect4Sq(conect4Sq.FakeClientId,conect4Sq.FakeClientSecret);
 
                 }
                 return ses[name] as conect4Sq;

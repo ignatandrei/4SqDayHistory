@@ -21,7 +21,7 @@ namespace FourSquareConsole
         static void Main(string[] args)
         {
 
-            var c = new conect4Sq("clientid", "clientsecret");
+            var c = new conect4Sq(conect4Sq.FakeClientId, conect4Sq.FakeClientSecret);
             c.Authenticate2();
             
 
