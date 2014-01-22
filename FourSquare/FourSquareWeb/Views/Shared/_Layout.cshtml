@@ -32,11 +32,21 @@
         <hr />
         <footer>
             <p>&copy; @DateTime.Now.Year - FourSquare demo</p>
-        </footer>
+            <small>
+                Made by Andrei Ignat, <a href="http://msprogrammer.serviciipeweb.ro/" target="_blank">http://msprogrammer.serviciipeweb.ro</a>
+                <br />
+                Source code at <a href="https://github.com/ignatandrei/4SqDayHistory" target="_blank">https://github.com/ignatandrei/4SqDayHistory</a>
+                <br />
+                View online at <a href="http://fsq.apphb.com" target="_blank">http://fsq.apphb.com</a>
+                <br />
+                </small>
+</footer>
     </div>
 
     @Scripts.Render("~/bundles/jquery")
     @Scripts.Render("~/bundles/bootstrap")
     @RenderSection("scripts", required: false)
+
+
 </body>
 </html>
