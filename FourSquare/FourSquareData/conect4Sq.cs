@@ -54,10 +54,14 @@ namespace FourSquareData
         {
             var newUrl = urlSOA + "api/Values/ClientToken/" + this.thisRequest;
             var code = new WebClient().DownloadString(newUrl).Replace("\"", "");
-            string token = this.sharpSquare.GetAccessToken(urlSOA + "home/redirect4sq/", code);
+            SetAccessCode(code);
 
         }
-        public void Authenticate()
+        public void SetAccessCode(string code)
+        {
+            string token = this.sharpSquare.GetAccessToken(urlSOA + "home/redirect4sq/", code);
+        }
+        public void AuthenticateNewWebBrowser()
         {
             string urlAuth = this.sharpSquare.GetAuthenticateUrl(urlSOA + "home/redirect4sq/" + this.thisRequest);
             Process p = new Process();

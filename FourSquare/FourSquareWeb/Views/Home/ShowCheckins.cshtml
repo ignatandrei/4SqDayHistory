@@ -44,7 +44,7 @@
             @Html.DisplayFor(modelItem => item.venue.name)
         </td>
         <td>
-            @FourSquareData.conect4Sq.FromUnixTime(item.createdAt)
+            @FourSquareData.conect4Sq.FromUnixTime(int.Parse(item.createdAt))
         </td>
         <td>
             @Html.DisplayFor(modelItem => item.type)
