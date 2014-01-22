@@ -15,37 +15,45 @@ namespace FourSquareConsole
         static void WriteToLog(string val)
         {
             Console.WriteLine(val);
-            File.AppendAllText("a.txt", val + Environment.NewLine);
+            File.WriteAllText("a.txt", val + Environment.NewLine);
         }
         
         static void Main(string[] args)
         {
-
-            var c = new conect4Sq();
-            c.Authenticate2();
-            
-
-            var data = c.CheckinsYesterday();
-            foreach (var item in data)
+            try
             {
-                var dt = conect4Sq.FromUnixTime(long.Parse( item.createdAt)).ToLocalTime();
+                var c = new conect4Sq();
+                c.Authenticate2();
 
-                WriteToLog(dt.ToLongDateString() + " " + dt.ToLongTimeString());
-                WriteToLog(item.venue.name);
-                if (item.comments != null && item.comments.count > 0)
+
+                var data = c.CheckinsYesterday();
+                foreach (var item in data)
                 {
-                    foreach (var com in item.comments.items)
+                    var dt = conect4Sq.FromUnixTime(long.Parse(item.createdAt)).ToLocalTime();
+
+                    WriteToLog(dt.ToLongDateString() + " " + dt.ToLongTimeString());
+                    WriteToLog(item.venue.name);
+                    if (item.comments != null && item.comments.count > 0)
                     {
-                        WriteToLog(com.ToString());            
+                        foreach (var com in item.comments.items)
+                        {
+                            WriteToLog(com.ToString());
+                        }
+
                     }
-                            
+
+
+
                 }
-                
-                
-                
+                Process.Start("a.txt");
+                Console.WriteLine("A");
             }
-            Process.Start("a.txt");
-            Console.WriteLine("A");
+            catch (ArgumentException ex)
+            {
+                Console.WriteLine(ex.Message);
+                Console.WriteLine("-----------------");
+                Console.WriteLine("please modify in config file the clientId and clientSecret with data from YOUR fourSquare application");
+            }
         }
 
 
