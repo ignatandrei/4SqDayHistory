@@ -12,6 +12,9 @@
 <table class="table">
     <tr>
         <th>
+            @Html.DisplayNameFor(model => model.venue.name)
+        </th>
+        <th>
             @Html.DisplayNameFor(model => model.createdAt)
         </th>
         <th>
@@ -38,7 +41,10 @@
 @foreach (var item in Model) {
     <tr>
         <td>
-            @Html.DisplayFor(modelItem => item.createdAt)
+            @Html.DisplayFor(modelItem => item.venue.name)
+        </td>
+        <td>
+            @FourSquareData.conect4Sq.FromUnixTime(item.createdAt)
         </td>
         <td>
             @Html.DisplayFor(modelItem => item.type)
