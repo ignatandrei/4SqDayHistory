@@ -7,6 +7,9 @@ using System.Text;
 using System.IO;
 using System.Web.Script.Serialization;
 using FourSquare.SharpSquare.Entities;
+using System.Reflection;
+using System.Collections;
+using System.Diagnostics;
 
 namespace FourSquare.SharpSquare.Core
 {
@@ -50,6 +53,7 @@ namespace FourSquare.SharpSquare.Core
 
         private string Request(string url, HttpMethod httpMethod, string data)
         {
+            url = url + "&v=20140101";
             string result = string.Empty;
             HttpWebRequest httpWebRequest = (HttpWebRequest)WebRequest.Create(url);
             httpWebRequest.Method = httpMethod.ToString();
@@ -81,22 +85,129 @@ namespace FourSquare.SharpSquare.Core
             return parameters.Remove(parameters.Length - 1, 1).ToString();
         }
 
-        private FourSquareSingleResponse<T> GetSingle<T>(string endpoint) where T : FourSquareEntity
+        private FourSquareSingleResponse<T> GetSingle<T>(string endpoint) where T : FourSquareEntity,new()
         {
             return GetSingle<T>(endpoint, null, false);
         }
 
-        private FourSquareSingleResponse<T> GetSingle<T>(string endpoint, bool unauthenticated) where T : FourSquareEntity
+        private FourSquareSingleResponse<T> GetSingle<T>(string endpoint, bool unauthenticated) where T : FourSquareEntity,new()
         {
             return GetSingle<T>(endpoint, null, unauthenticated);
         }
 
-        private FourSquareSingleResponse<T> GetSingle<T>(string endpoint, Dictionary<string, string> parameters) where T : FourSquareEntity
+        private FourSquareSingleResponse<T> GetSingle<T>(string endpoint, Dictionary<string, string> parameters) where T : FourSquareEntity,new()
         {
             return GetSingle<T>(endpoint, parameters, false);
         }
 
-        private FourSquareSingleResponse<T> GetSingle<T>(string endpoint, Dictionary<string, string> parameters, bool unauthenticated) where T : FourSquareEntity
+        private object DeserializeObject(Dictionary<string, object> dictItem, Type tip)
+        {
+            
+            var newInstance = Activator.CreateInstance(tip);
+            var isDictionary = (tip.GetInterface("IDictionary") != null);
+            PropertyInfo p = null;
+            foreach (var k in dictItem.Keys)
+            {
+                var ser=  new JavaScriptSerializer().Serialize(dictItem[k]);
+
+                
+                Type tipP = null;
+                if (isDictionary)
+                {
+                    tipP = tip.GetGenericArguments()[1];
+                }
+                else
+                {
+                    
+                    try
+                    {
+                        p = tip.GetProperty(k);
+                        if (p == null)
+                            throw new ArgumentNullException(k);
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine(ex.Message);
+                        Console.WriteLine("please add property:" + k + " to class" + tip.FullName + " value:" + ser);
+                        continue;
+                    }
+                    tipP = p.PropertyType;
+                }
+                
+                
+                if (tipP.IsClass && tipP.FullName != typeof(string).FullName)
+                {
+                    
+                    dynamic val = null;
+                    try
+                    {
+                        val = new JavaScriptSerializer().Deserialize(ser, tipP);
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine("error for class:" + k + ex.Message);
+                        IList arr = dictItem[k] as object[];
+                        if (arr == null)
+                        {
+                            arr = dictItem[k] as ArrayList;
+                        }
+                        if (arr == null)
+                        {
+                            var s1 = k;
+                            var t1 = dictItem[k] as Dictionary<string, object>;
+                            if (t1 == null)
+                            {
+                                t1 = null;
+                            }
+
+                            val = DeserializeObject(dictItem[k] as Dictionary<string, object>, tipP);
+                            
+                        }
+                        else
+                        {
+                            val = Activator.CreateInstance(tipP);
+                            var tipGen=tipP.GetGenericArguments()[0];
+                            foreach (var obj in arr)
+                            {
+                                val.Add((dynamic)DeserializeObject(obj as Dictionary<string, object>, tipGen));
+                            }
+                        }
+                        
+
+                    }
+
+                    if (isDictionary)
+                    {
+                        ((IDictionary)newInstance).Add(k, Convert.ChangeType(val, tipP));
+                    }
+                    else
+                    {
+                        p.SetValue(newInstance, Convert.ChangeType(val, tipP), null);
+
+                    }
+                }
+                else//simple int , string, 
+                {
+                    try
+                    {
+                        if (isDictionary)
+                        {
+                            ((IDictionary)newInstance).Add(k, Convert.ChangeType(dictItem[k], tipP));
+                        }
+                        else
+                        {
+                            p.SetValue(newInstance, Convert.ChangeType(dictItem[k], tipP), null);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine("not a simple property " + k + " from " + tip+ " value:" +  ser);
+                    }
+                }
+            }
+            return newInstance;
+        }
+        private FourSquareSingleResponse<T> GetSingle<T>(string endpoint, Dictionary<string, string> parameters, bool unauthenticated) where T : FourSquareEntity,new()
         {
             string serializedParameters = "";
             if (parameters != null)
@@ -113,28 +224,36 @@ namespace FourSquare.SharpSquare.Core
             {
                 oauthToken = string.Format("oauth_token={0}", accessToken);
             }
-
             string json = Request(string.Format("{0}{1}?{2}{3}", apiUrl, endpoint, oauthToken, serializedParameters), HttpMethod.GET);
-            FourSquareSingleResponse<T> fourSquareResponse = new JavaScriptSerializer().Deserialize<FourSquareSingleResponse<T>>(json);
+            FourSquareSingleResponse<T> fourSquareResponse;
+            try
+            {
+                fourSquareResponse = new JavaScriptSerializer().Deserialize<FourSquareSingleResponse<T>>(json);
+            }
+            catch (Exception ex)
+            {
+                var obj = new JavaScriptSerializer().Deserialize<Dictionary<string, object>>(json);
+                fourSquareResponse = DeserializeObject(obj, typeof(FourSquareSingleResponse<T>)) as FourSquareSingleResponse<T>; 
+            }
             return fourSquareResponse;
         }
 
-        private FourSquareMultipleResponse<T> GetMultiple<T>(string endpoint) where T : FourSquareEntity
+        private FourSquareMultipleResponse<T> GetMultiple<T>(string endpoint) where T : FourSquareEntity,new()
         {
             return GetMultiple<T>(endpoint, null, false);
         }
 
-        private FourSquareMultipleResponse<T> GetMultiple<T>(string endpoint, bool unauthenticated) where T : FourSquareEntity
+        private FourSquareMultipleResponse<T> GetMultiple<T>(string endpoint, bool unauthenticated) where T : FourSquareEntity, new()
         {
             return GetMultiple<T>(endpoint, null, unauthenticated);
         }
 
-        private FourSquareMultipleResponse<T> GetMultiple<T>(string endpoint, Dictionary<string, string> parameters) where T : FourSquareEntity
+        private FourSquareMultipleResponse<T> GetMultiple<T>(string endpoint, Dictionary<string, string> parameters) where T : FourSquareEntity, new()
         {
             return GetMultiple<T>(endpoint, parameters, false);
         }
 
-        private FourSquareMultipleResponse<T> GetMultiple<T>(string endpoint, Dictionary<string, string> parameters, bool unauthenticated) where T : FourSquareEntity
+        private FourSquareMultipleResponse<T> GetMultiple<T>(string endpoint, Dictionary<string, string> parameters, bool unauthenticated) where T : FourSquareEntity, new()
         {
             string serializedParameters = "";
             if (parameters != null)
@@ -173,7 +292,7 @@ namespace FourSquare.SharpSquare.Core
             string json = Request(string.Format("{0}{1}?oauth_token={2}{3}", apiUrl, endpoint, accessToken, serializedParameters), HttpMethod.POST);
         }
 
-        private FourSquareSingleResponse<T> Post<T>(string endpoint) where T : FourSquareEntity
+        private FourSquareSingleResponse<T> Post<T>(string endpoint) where T : FourSquareEntity, new()
         {
             string serializedParameters = "";
 
@@ -182,7 +301,7 @@ namespace FourSquare.SharpSquare.Core
             return fourSquareResponse;
         }
 
-        private FourSquareSingleResponse<T> Post<T>(string endpoint, Dictionary<string, string> parameters) where T : FourSquareEntity
+        private FourSquareSingleResponse<T> Post<T>(string endpoint, Dictionary<string, string> parameters) where T : FourSquareEntity, new()
         {
             string serializedParameters = "";
             if (parameters != null)
